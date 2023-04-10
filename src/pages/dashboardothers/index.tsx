@@ -36,9 +36,7 @@ interface TaskProps {
     user: string
 }
 
-export default function Dashboard( {user}: HomeProps ) {
-
-    const {data: session, status} = useSession()
+export default function DashboardOthers( {user}: HomeProps ) {
 
     const [input, setInput] = useState('')
     const [publicTask, setPublicTask] = useState(false)
@@ -50,21 +48,23 @@ export default function Dashboard( {user}: HomeProps ) {
 
             const q = query(
                 tarefasRef,
-                orderBy('created', "desc"),
-                where('user', '==', user?.email)
+                orderBy('user', "desc"),
+                where('user', '!=', user?.email)
             )
 
             onSnapshot(q, (snapshot) => {
                 let lista = [] as TaskProps[]
 
                 snapshot.forEach((docs) => {
-                    lista.push({
-                        id: docs.id,
-                        tarefa: docs.data().tarefa,
-                        created: docs.data().created,
-                        user: docs.data().user,
-                        public: docs.data().public
-                    })
+                    if(docs.data().public === true) {
+                        lista.push({
+                            id: docs.id,
+                            tarefa: docs.data().tarefa,
+                            created: docs.data().created,
+                            user: docs.data().user,
+                            public: docs.data().public
+                        })
+                    }
                 })
 
                 setTasks(lista)
@@ -141,7 +141,7 @@ export default function Dashboard( {user}: HomeProps ) {
                 </section>
 
                 <section className={styles.taskContainer}>
-                    <h1>Minhas tarefas</h1>
+                    <h1>Tarefas Públicas de Terceiros</h1>
 
                     {tasks.map((item) => (
                         <article key={item.id} className={styles.task}>
@@ -152,10 +152,11 @@ export default function Dashboard( {user}: HomeProps ) {
                                             onClick={() => handleShare(item.id)}>
                                         <FiShare2 size={22} color="#3183FF" />
                                     </button>
+                            <div><p>{item.user}</p></div>
                                 </div>
                             )}
-
                             <div className={styles.taskContent}>
+                                
                                 {item.public ? (
                                     <Link href={`/task/${item.id}`}>
                                         <p>{item.tarefa}</p>

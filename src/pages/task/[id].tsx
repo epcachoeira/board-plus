@@ -1,10 +1,9 @@
-
 import { GetServerSideProps } from "next"
 import Head from "next/head";
 import styles from './styles.module.css'
-import { useSession } from 'next-auth/react'
+import { getSession, useSession } from 'next-auth/react'
 
-import { db } from '../../services/firebaseConnection'
+import { db } from "../../services/firebaseConnection";
 // Importação dos métodos do Firestore
 import { collection, 
         query, // Faz pesquisa seletiva no banco. Requer índice 
@@ -151,10 +150,22 @@ export default function Task({ item, allComments }: TaskProps) {
     )
 }
 
-export const getServerSideProps: GetServerSideProps = async ({ params }) => {
+export const getServerSideProps: GetServerSideProps = async ({ params, req }) => {
 
-    const id = params?.id as string
+    // Verifica se o usuário continua logado
+    const session = await getSession({ req })
+    if(!session?.user) {
+        // Sem usuário logado, redirecionar para a tela HOME
+        return {
+            redirect: {
+                destination: '/',
+                permanent: false
+            }
+        }
+    }
+
     // Recupera informações da tarefa
+    const id = params?.id as string
     const docRef = doc(db, 'tarefas', id)
     const snapshot = await getDoc(docRef)
     
@@ -168,7 +179,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
         }
     }
     // Verifica se a tarefa é pública => Redireciona
-    if(!snapshot.data()?.public) {
+    if(!snapshot.data()?.public && snapshot.data()?.user !== params?.user) {
         return {
             redirect: {
                 destination: '/',

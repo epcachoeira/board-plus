@@ -19,6 +19,11 @@ export default function Header() {
                             Meu Painel
                         </Link>
                     )}
+                    {session?.user && (
+                        <Link href="/dashboardothers" className={styles.link}>
+                            Painel de terceiros
+                        </Link>
+                    )}
                 </nav>
 
                 { status === 'loading' ? (
@@ -36,6 +41,3 @@ export default function Header() {
         </header>
     )
 }
-{/* <Link href="/dashboard" className={styles.link}>
-                        Meu Painel
-                    </Link> */}
